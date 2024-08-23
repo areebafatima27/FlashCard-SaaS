@@ -24,10 +24,6 @@ import { useState } from "react";
 import { db } from "@/firebase";
 import dynamic from "next/dynamic";
 
-import dynamic from "next/dynamic";
-
-const FlashcardComponent = dynamic(() => import("./flashcard"), { ssr: false });
-
 export default function Flashcard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [flashcards, setFlashcards] = useState([]);
