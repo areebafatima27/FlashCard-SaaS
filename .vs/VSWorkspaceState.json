@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\app\\api",
+    "\\app\\api\\checkout_sessions",
+    "\\app\\api\\generate",
+    "\\app\\sign-in",
+    "\\app\\sign-in\\[[...sign-in]]",
+    "\\app\\sign-up",
+    "\\app\\sign-up\\[[...sign-up]]",
+    "\\utils"
+  ],
+  "SelectedNode": "\\app\\api\\checkout_sessions\\route.js",
+  "PreviewInSolutionExplorer": false
+}

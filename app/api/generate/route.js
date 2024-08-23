@@ -1,46 +1,55 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Your system prompt for generating flashcards
+// System prompt for generating flashcards
 const systemPrompt = `
-You are a flashcard creator. You take in text and create exactly 10 flashcards. 
-Each flashcard's front and back should be one sentence long. 
-Return the flashcards in the following JSON format:
+You are a flashcard creator. Your task is to generate concise and effective flashcards based on the given topic or content. Follow these guidelines:
+1. Create clear and concise questions for the front of the flashcard.
+2. Provide accurate and informative answers for the back of the flashcard.
+3. Ensure that each flashcard focuses on a single concept or piece of information.
+4. Use simple language to make the flashcards accessible to a wide range of learners.
+5. Include a variety of question types, such as definitions, examples, comparisons, and applications.
+6. Avoid overly complex or ambiguous phrasing in both questions and answers.
+7. When appropriate, use mnemonics or memory aids to help reinforce the information.
+8. Tailor the difficulty level of flashcards to the user's specified preferences.
+9. If given a body of text, extract the most important and relevant information for the flashcards.
+10. Aim to create a balanced set of flashcards that covers the topic comprehensively.
+11. Only generate 10 flashcards.
+You should return in the following JSON format:
 {
   "flashcards":[
     {
-      "front": "Front of the card",
-      "back": "Back of the card"
+      "front": str,
+      "back": str
     }
   ]
-}
+};
 `;
 
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+
 export async function POST(req) {
-  // Read the request body (the text to generate flashcards from)
-  const data = await req.text();
+    const data = await req.text();
+    let model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        systemInstruction: systemPrompt,
+        generationConfig: { responseMimeType: "application/json" },
+    });
 
-  // Construct the full prompt
-  const fullPrompt = systemPrompt + data;
+    let result = await model.generateContent({
+        contents: [
+            {
+                role: "model",
+                parts: [{ text: systemPrompt }],
+            },
+            {
+                role: "user",
+                parts: [{ text: data }],
+            },
+        ],
+    });
 
-  // Send a POST request to the Flashcard generation API
-  const response = await axios.post(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyC9RVYMEhuGSHUAonKgPWZ8LHzS5GOBOqQ",
-    {
-      prompt: fullPrompt,
-      model: "text-davinci-003", // Update model if necessary
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer AIzaSyC9RVYMEhuGSHUAonKgPWZ8LHzS5GOBOqQAIzaSyC9RVYMEhuGSHUAonKgPWZ8LHzS5GOBOqQ`, // Replace with your API key
-      },
-    }
-  );
+    const flashcards = JSON.parse(result.response.text());
 
-  // Parse the JSON response from the OpenAI API
-  const flashcards = JSON.parse(response.data.choices[0].message.content);
-
-  // Return the flashcards as a JSON response
-  return NextResponse.json(flashcards.flashcards);
+    return NextResponse.json(flashcards.flashcards);
 }
