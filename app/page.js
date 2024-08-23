@@ -15,58 +15,56 @@ import {
 import Head from "next/head";
 
 export default function Home() {
+  const handleSubmit = async () => {
+    try {
+      // Make the API call to create a checkout session
+      const checkoutSession = await fetch("/api/checkout_session", {
+        method: "POST",
+        headers: {
+          origin: "http://localhost:3002/",
+        },
+      });
 
-    const handleSubmit = async () => {
-        try {
-            // Make the API call to create a checkout session
-            const checkoutSession = await fetch('/api/checkout_sessions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+      // Check if the response is OK (status in the range 200-299)
+      if (!checkoutSession.ok) {
+        const errorMessage = await checkoutSession.text(); // Get the error message
+        console.error(`Error creating checkout session: ${errorMessage}`);
+        return;
+      }
 
-            // Check if the response is OK (status in the range 200-299)
-            if (!checkoutSession.ok) {
-                const errorMessage = await checkoutSession.text(); // Get the error message
-                console.error(`Error creating checkout session: ${errorMessage}`);
-                return;
-            }
+      // Check if the response has content to parse
+      const textResponse = await checkoutSession.text();
+      if (!textResponse) {
+        console.error("Empty response received from server.");
+        return;
+      }
 
-            // Check if the response has content to parse
-            const textResponse = await checkoutSession.text();
-            if (!textResponse) {
-                console.error('Empty response received from server.');
-                return;
-            }
+      // Parse the response JSON
+      let checkoutSessionJson;
+      try {
+        checkoutSessionJson = JSON.parse(textResponse);
+      } catch (parseError) {
+        console.error("Error parsing JSON response:", parseError);
+        return;
+      }
 
-            // Parse the response JSON
-            let checkoutSessionJson;
-            try {
-                checkoutSessionJson = JSON.parse(textResponse);
-            } catch (parseError) {
-                console.error('Error parsing JSON response:', parseError);
-                return;
-            }
+      // Get the Stripe instance
+      const stripe = await getStripe();
 
-            // Get the Stripe instance
-            const stripe = await getStripe();
+      // Redirect to Stripe Checkout
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: checkoutSessionJson.id,
+      });
 
-            // Redirect to Stripe Checkout
-            const { error } = await stripe.redirectToCheckout({
-                sessionId: checkoutSessionJson.id,
-            });
-
-            // Handle any error from the redirect
-            if (error) {
-                console.warn(`Stripe redirect error: ${error.message}`);
-            }
-        } catch (error) {
-            // Catch and handle any errors during the fetch or Stripe operations
-            console.error('Error during checkout:', error);
-        }
-    };
-
+      // Handle any error from the redirect
+      if (error) {
+        console.warn(`Stripe redirect error: ${error.message}`);
+      }
+    } catch (error) {
+      // Catch and handle any errors during the fetch or Stripe operations
+      console.error("Error during checkout:", error);
+    }
+  };
 
   return (
     <Container maxWidth="lg" className="container">
@@ -112,7 +110,12 @@ export default function Home() {
           {""}
           The easiest way to make flashcards from our text.
         </Typography>
-              <Button variant="contained" color="primary" sx={{ mt: 2 }} href="/generate">
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+          href="/generate"
+        >
           Get Started
         </Button>
       </Box>
@@ -195,7 +198,12 @@ export default function Home() {
                 {" "}
                 Get your Pro version now with unlimited storage.
               </Typography>
-                          <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSubmit}>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ mt: 2 }}
+                onClick={handleSubmit}
+              >
                 Choose PRO
               </Button>
             </Box>
