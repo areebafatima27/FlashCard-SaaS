@@ -12,6 +12,8 @@ import {
   Container,
   Grid,
   Typography,
+  Box,
+  flipped,
 } from "@mui/material";
 
 export default function Flashcards() {

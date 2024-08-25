@@ -90,7 +90,7 @@ export default function Flashcard() {
 
       await batch.commit();
       handleClose();
-      router.push("/flashcards");
+      router.push("./flashcards");
     } catch (error) {
       console.error("Error saving flashcards:", error);
       alert("An error occurred while saving flashcards: " + error.message);
